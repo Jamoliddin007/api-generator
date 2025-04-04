@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Literal
 
-# Field (ProjectField) chiqish modeli
 class FieldOut(BaseModel):
     name: str
     type: str
@@ -10,7 +9,6 @@ class FieldOut(BaseModel):
     class Config:
         from_attributes = True
 
-# Batafsil project chiqishi
 class ProjectDetailOut(BaseModel):
     name: str
     slug: str
