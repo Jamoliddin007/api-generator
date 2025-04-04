@@ -8,7 +8,8 @@ from generators.fastapi_builder import generate_fastapi_code
 from generators.generate_and_save import save_code_to_file
 from database.models import GeneratedProject, ProjectField
 from project_root.dependencies import get_db
-from schemas.schemas import ProjectOut
+from schemas.schemas import ProjectOut, ProjectDetailOut, FieldOut, NewField
+
 
 app = FastAPI()
 
@@ -70,3 +71,45 @@ def generate_and_save_all(request: APIGenerateRequest, db: Session = Depends(get
 def list_projects(db: Session = Depends(get_db)):
     projects = db.query(GeneratedProject).order_by(GeneratedProject.created_at.desc()).all()
     return projects
+
+
+@app.get("/projects/{slug}", response_model=ProjectDetailOut)
+def get_project_detail(slug: str, db: Session = Depends(get_db)):
+    project = db.query(GeneratedProject).filter(GeneratedProject.slug == slug).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    return project
+
+
+@app.delete("/projects/{slug}")
+def delete_project(slug: str, db: Session = Depends(get_db)):
+    project = db.query(GeneratedProject).filter(GeneratedProject.slug == slug).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    db.delete(project)  # relationship cascade = all, delete bo‘lgani uchun fieldlar ham o‘chadi
+    db.commit()
+
+    return {"message": f"Project '{slug}' deleted successfully"}
+
+
+@app.patch("/projects/{slug}/add-field")
+def add_field_to_project(slug: str, field: NewField, db: Session = Depends(get_db)):
+    # Projectni topamiz
+    project = db.query(GeneratedProject).filter(GeneratedProject.slug == slug).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Field qo‘shamiz
+    new_field = ProjectField(
+        project_id=project.id,
+        name=field.name,
+        type=field.type
+    )
+    db.add(new_field)
+    db.commit()
+
+    return {
+        "message": f"Field '{field.name}' added to project '{slug}'"
+    }
