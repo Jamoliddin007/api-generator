@@ -34,5 +34,5 @@ Just define your model fields (e.g. name, type), and let this engine do the rest
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/api-generator.git
+   git clone https://github.com/Jamoliddin007/api-generator.git
    cd api-generator
